@@ -34,8 +34,10 @@ import org.sonarsource.sonarlint.core.client.api.standalone.StandaloneGlobalConf
 import org.sonarsource.sonarlint.core.client.api.standalone.StandaloneSonarLintEngine;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -103,8 +105,8 @@ public class StandaloneSonarLintTest {
     return new ClientInputFile() {
 
       @Override
-      public Path getPath() {
-        return filePath;
+      public String getPath() {
+        return filePath.toString();
       }
 
       @Override
@@ -120,6 +122,16 @@ public class StandaloneSonarLintTest {
       @Override
       public <G> G getClientObject() {
         return null;
+      }
+
+      @Override
+      public InputStream inputStream() throws IOException {
+        return Files.newInputStream(filePath);
+      }
+
+      @Override
+      public String contents() throws IOException {
+        return new String(Files.readAllBytes(filePath));
       }
     };
   }

@@ -20,6 +20,7 @@
 package org.sonarlint.cli;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -140,8 +141,8 @@ public class InputFileFinder {
     }
 
     @Override
-    public Path getPath() {
-      return path;
+    public String getPath() {
+      return path.toString();
     }
 
     @Override
@@ -152,6 +153,16 @@ public class InputFileFinder {
     @Override
     public <G> G getClientObject() {
       return null;
+    }
+
+    @Override
+    public InputStream inputStream() throws IOException {
+      return Files.newInputStream(path);
+    }
+
+    @Override
+    public String contents() throws IOException {
+      return new String(Files.readAllBytes(path));
     }
   }
 }
