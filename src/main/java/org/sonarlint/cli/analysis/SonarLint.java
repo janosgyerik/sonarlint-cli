@@ -19,12 +19,6 @@
  */
 package org.sonarlint.cli.analysis;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import org.sonarlint.cli.input.InputFileFinder;
 import org.sonarlint.cli.report.ReportFactory;
 import org.sonarlint.cli.report.Reporter;
@@ -34,7 +28,11 @@ import org.sonarsource.sonarlint.core.client.api.common.analysis.AnalysisResults
 import org.sonarsource.sonarlint.core.client.api.common.analysis.ClientInputFile;
 import org.sonarsource.sonarlint.core.client.api.common.analysis.Issue;
 
-import static org.sonarlint.cli.SonarProperties.PROJECT_HOME;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public abstract class SonarLint {
   private static final Logger LOGGER = Logger.get();
@@ -43,17 +41,10 @@ public abstract class SonarLint {
     // do nothing by default
   }
 
-  public void runAnalysis(Map<String, String> properties, ReportFactory reportFactory, InputFileFinder finder) {
-    String baseDir = System.getProperty(PROJECT_HOME);
-
-    if (baseDir == null) {
-      throw new IllegalStateException("Can't find project home. System property not set: " + PROJECT_HOME);
-    }
-
-    Path baseDirPath = Paths.get(baseDir);
+  public void runAnalysis(Path baseDirPath, Map<String, String> properties, ReportFactory reportFactory, InputFileFinder finder) {
     List<ClientInputFile> inputFiles;
     try {
-      inputFiles = finder.collect(baseDirPath);
+      inputFiles = finder.collect();
     } catch (IOException e) {
       throw new IllegalStateException("Error preparing list of files to analyze", e);
     }
@@ -74,7 +65,7 @@ public abstract class SonarLint {
 
   public abstract void stop();
 
-  protected void generateReports(List<Issue> issues, AnalysisResults result, ReportFactory reportFactory, String projectName, Path baseDir, Date date) {
+  void generateReports(List<Issue> issues, AnalysisResults result, ReportFactory reportFactory, String projectName, Path baseDir, Date date) {
     List<Reporter> reporters = reportFactory.createReporters(baseDir);
 
     for (Reporter r : reporters) {

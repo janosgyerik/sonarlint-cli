@@ -26,17 +26,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.Map;
 import org.sonarlint.cli.analysis.SonarLint;
 import org.sonarlint.cli.analysis.SonarLintFactory;
 import org.sonarlint.cli.config.ConfigurationReader;
+import org.sonarlint.cli.input.GlobInputFileFinder;
 import org.sonarlint.cli.input.InputFileFinder;
 import org.sonarlint.cli.report.ReportFactory;
 import org.sonarlint.cli.util.Logger;
 import org.sonarlint.cli.util.System2;
 import org.sonarlint.cli.util.SystemInfo;
 import org.sonarlint.cli.util.Util;
+
+import static org.sonarlint.cli.SonarProperties.PROJECT_HOME;
 
 public class Main {
   static final int SUCCESS = 0;
@@ -47,13 +52,15 @@ public class Main {
   private final Options opts;
   private final ReportFactory reportFactory;
   private BufferedReader inputReader;
+  private final Path baseDirPath;
   private final InputFileFinder fileFinder;
   private final SonarLintFactory sonarLintFactory;
 
-  public Main(Options opts, SonarLintFactory sonarLintFactory, ReportFactory reportFactory, InputFileFinder fileFinder) {
+  public Main(Options opts, SonarLintFactory sonarLintFactory, ReportFactory reportFactory, Path baseDirPath, InputFileFinder fileFinder) {
     this.opts = opts;
     this.sonarLintFactory = sonarLintFactory;
     this.reportFactory = reportFactory;
+    this.baseDirPath = baseDirPath;
     this.fileFinder = fileFinder;
   }
 
@@ -102,7 +109,7 @@ public class Main {
 
   private void runOnce(Stats stats, SonarLint sonarLint, Map<String, String> props) throws IOException {
     stats.start();
-    sonarLint.runAnalysis(props, reportFactory, fileFinder);
+    sonarLint.runAnalysis(baseDirPath, props, reportFactory, fileFinder);
     sonarLint.stop();
     displayExecutionResult(stats, "SUCCESS");
   }
@@ -110,7 +117,7 @@ public class Main {
   private void runInteractive(Stats stats, SonarLint sonarLint, Map<String, String> props) throws IOException {
     do {
       stats.start();
-      sonarLint.runAnalysis(props, reportFactory, fileFinder);
+      sonarLint.runAnalysis(baseDirPath, props, reportFactory, fileFinder);
       displayExecutionResult(stats, "SUCCESS");
     } while (waitForUser());
 
@@ -160,12 +167,20 @@ public class Main {
       return;
     }
 
-    InputFileFinder fileFinder = new InputFileFinder(parsedOpts.src(), parsedOpts.tests(), parsedOpts.exclusions(), charset);
+    String baseDir = system.getProperty(PROJECT_HOME);
+    if (baseDir == null) {
+      LOGGER.error("Can't find project home. System property not set: " + PROJECT_HOME);
+      system.exit(ERROR);
+      return;
+    }
+
+    Path baseDirPath = Paths.get(baseDir);
+    InputFileFinder fileFinder = new GlobInputFileFinder(baseDirPath, parsedOpts.src(), parsedOpts.tests(), parsedOpts.exclusions(), charset);
     ReportFactory reportFactory = new ReportFactory(charset);
     ConfigurationReader reader = new ConfigurationReader();
     SonarLintFactory sonarLintFactory = new SonarLintFactory(reader);
 
-    int ret = new Main(parsedOpts, sonarLintFactory, reportFactory, fileFinder).run();
+    int ret = new Main(parsedOpts, sonarLintFactory, reportFactory, baseDirPath, fileFinder).run();
     system.exit(ret);
   }
 

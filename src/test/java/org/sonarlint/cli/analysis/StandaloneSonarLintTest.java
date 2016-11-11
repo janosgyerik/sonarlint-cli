@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,12 +75,12 @@ public class StandaloneSonarLintTest {
   public void run() throws IOException {
     InputFileFinder fileFinder = mock(InputFileFinder.class);
     Path inputFile = temp.newFile().toPath();
-    when(fileFinder.collect(any(Path.class))).thenReturn(Collections.singletonList(createInputFile(inputFile, false)));
+    when(fileFinder.collect()).thenReturn(Collections.singletonList(createInputFile(inputFile, false)));
     String path = temp.newFolder().getAbsolutePath();
     System.setProperty(SonarProperties.PROJECT_HOME, path);
-    sonarLint.runAnalysis(new HashMap<>(), new ReportFactory(StandardCharsets.UTF_8), fileFinder);
+    sonarLint.runAnalysis(Paths.get(path), new HashMap<>(), new ReportFactory(StandardCharsets.UTF_8), fileFinder);
 
-    verify(fileFinder).collect(Paths.get(path));
+    verify(fileFinder).collect();
 
     Path htmlReport = Paths.get(path).resolve(".sonarlint").resolve("sonarlint-report.html");
     assertThat(htmlReport).exists();
@@ -90,11 +89,11 @@ public class StandaloneSonarLintTest {
   @Test
   public void runWithoutFiles() throws IOException {
     InputFileFinder fileFinder = mock(InputFileFinder.class);
-    when(fileFinder.collect(any(Path.class))).thenReturn(Collections.<ClientInputFile>emptyList());
+    when(fileFinder.collect()).thenReturn(Collections.<ClientInputFile>emptyList());
     String path = temp.newFolder().getAbsolutePath();
     System.setProperty(SonarProperties.PROJECT_HOME, path);
 
-    sonarLint.runAnalysis(new HashMap<>(), new ReportFactory(StandardCharsets.UTF_8), fileFinder);
+    sonarLint.runAnalysis(Paths.get(path), new HashMap<>(), new ReportFactory(StandardCharsets.UTF_8), fileFinder);
 
     Path htmlReport = Paths.get(path).resolve(".sonarlint").resolve("sonarlint-report.html");
     assertThat(htmlReport).doesNotExist();

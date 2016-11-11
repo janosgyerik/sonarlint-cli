@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.sonarlint.cli.input.GlobInputFileFinder;
 import org.sonarlint.cli.input.InputFileFinder;
 import org.sonarlint.cli.util.Logger;
 import org.sonarsource.sonarlint.core.client.api.common.analysis.ClientInputFile;
@@ -91,9 +92,9 @@ public class InputFileFinderTest {
   }
 
   public void onlyTest(String pattern) throws IOException {
-    fileFinder = new InputFileFinder(null, pattern, null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, null, pattern, null, Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).hasSize(2);
     assertThat(files).extracting("test").contains(true, false);
   }
@@ -101,7 +102,7 @@ public class InputFileFinderTest {
   @Test
   public void invalidSourcePattern() throws IOException {
     try {
-      fileFinder = new InputFileFinder("\\", null, null, Charset.defaultCharset());
+      fileFinder = new GlobInputFileFinder(null, "\\", null, null, Charset.defaultCharset());
       fail("Expected exception");
     } catch (Exception e) {
       err.flush();
@@ -112,7 +113,7 @@ public class InputFileFinderTest {
   @Test
   public void invalidTestPattern() throws IOException {
     try {
-      fileFinder = new InputFileFinder(null, "\\", null, Charset.defaultCharset());
+      fileFinder = new GlobInputFileFinder(null, null, "\\", null, Charset.defaultCharset());
       fail("Expected exception");
     } catch (Exception e) {
       err.flush();
@@ -123,7 +124,7 @@ public class InputFileFinderTest {
   @Test
   public void invalidExclusionPattern() throws IOException {
     try {
-      fileFinder = new InputFileFinder(null, null, "\\", Charset.defaultCharset());
+      fileFinder = new GlobInputFileFinder(null, null, null, "\\", Charset.defaultCharset());
       fail("Expected exception");
     } catch (Exception e) {
       err.flush();
@@ -142,9 +143,9 @@ public class InputFileFinderTest {
   }
 
   public void onlySrc(String pattern) throws IOException {
-    fileFinder = new InputFileFinder(pattern, null, null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, pattern, null, null, Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).hasSize(1);
     assertThat(files).extracting("test").containsOnly(false);
 
@@ -154,28 +155,28 @@ public class InputFileFinderTest {
 
   @Test
   public void testDefault() throws IOException {
-    fileFinder = new InputFileFinder(null, null, null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, null, null, null, Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).hasSize(2);
     assertThat(files).extracting("test").containsOnly(false);
   }
 
   @Test
   public void testOverlapping() throws IOException {
-    fileFinder = new InputFileFinder("**tests**", "**tests**", null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, "**tests**", "**tests**", null, Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).hasSize(1);
     assertThat(files).extracting("test").containsOnly(true);
   }
 
   @Test
   public void testIgnoreHidden() throws IOException {
-    fileFinder = new InputFileFinder(null, null, null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, null, null, null, Charset.defaultCharset());
     File hiddenFolder = temp.newFolder(".test");
     Path hiddenSrc = hiddenFolder.toPath().resolve("Test.java");
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
 
     assertThat(files).extracting("path").doesNotContain(hiddenSrc);
     assertThat(files).extracting("path").contains(src1.toString());
@@ -183,17 +184,17 @@ public class InputFileFinderTest {
 
   @Test
   public void testDisjoint() throws IOException {
-    fileFinder = new InputFileFinder("**abc**", "**abc**", null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, "**abc**", "**abc**", null, Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).isEmpty();
   }
 
   @Test
   public void testCharset() throws IOException {
-    fileFinder = new InputFileFinder(null, null, null, StandardCharsets.US_ASCII);
+    fileFinder = new GlobInputFileFinder(root, null, null, null, StandardCharsets.US_ASCII);
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).hasSize(2);
     assertThat(files).extracting("charset").containsOnly(StandardCharsets.US_ASCII);
   }
@@ -212,17 +213,17 @@ public class InputFileFinderTest {
     Files.createFile(test2);
     Files.createFile(externalTest);
 
-    fileFinder = new InputFileFinder("src/**", "*Test.*", null, Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, "src/**", "*Test.*", null, Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).extracting("path").containsOnly(test1.toString(), test2.toString(), src1.toString());
   }
 
   @Test
   public void testExclusions() throws IOException {
-    fileFinder = new InputFileFinder(null, null, "tests/**", Charset.defaultCharset());
+    fileFinder = new GlobInputFileFinder(root, null, null, "tests/**", Charset.defaultCharset());
 
-    List<ClientInputFile> files = fileFinder.collect(root);
+    List<ClientInputFile> files = fileFinder.collect();
     assertThat(files).extracting("path").containsOnly(src1.toString());
   }
 
