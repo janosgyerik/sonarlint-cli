@@ -31,6 +31,7 @@ import java.util.Map;
 import org.sonarlint.cli.analysis.SonarLint;
 import org.sonarlint.cli.analysis.SonarLintFactory;
 import org.sonarlint.cli.config.ConfigurationReader;
+import org.sonarlint.cli.input.InputFileFinder;
 import org.sonarlint.cli.report.ReportFactory;
 import org.sonarlint.cli.util.Logger;
 import org.sonarlint.cli.util.System2;

@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.sonarlint.cli.InputFileFinder;
+import org.sonarlint.cli.input.InputFileFinder;
 import org.sonarlint.cli.report.ReportFactory;
 import org.sonarlint.cli.report.Reporter;
 import org.sonarlint.cli.util.Logger;

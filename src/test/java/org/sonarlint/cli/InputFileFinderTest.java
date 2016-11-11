@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.sonarlint.cli.input.InputFileFinder;
 import org.sonarlint.cli.util.Logger;
 import org.sonarsource.sonarlint.core.client.api.common.analysis.ClientInputFile;
 
