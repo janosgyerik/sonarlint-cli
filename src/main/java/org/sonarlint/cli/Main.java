@@ -166,7 +166,6 @@ public class Main {
 
     int ret = new Main(parsedOpts, sonarLintFactory, reportFactory, fileFinder).run();
     system.exit(ret);
-    return;
   }
 
   private static void displayExecutionResult(Stats stats, String resultMsg) {
