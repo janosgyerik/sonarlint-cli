@@ -136,7 +136,7 @@ public class Main {
 
   @VisibleForTesting
   static void execute(String[] args, System2 system) {
-    Options parsedOpts = null;
+    Options parsedOpts;
     try {
       parsedOpts = Options.parse(args);
     } catch (ParseException e) {
@@ -146,7 +146,7 @@ public class Main {
       return;
     }
 
-    Charset charset = null;
+    Charset charset;
     try {
       if (parsedOpts.charset() != null) {
         charset = Charset.forName(parsedOpts.charset());
