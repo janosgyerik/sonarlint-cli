@@ -27,6 +27,7 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
@@ -74,7 +75,7 @@ public class MainTest {
     sonarLint = mock(SonarLint.class);
     sonarLintFactory = mock(SonarLintFactory.class);
     when(sonarLintFactory.createSonarLint(anyBoolean(), anyBoolean())).thenReturn(sonarLint);
-    fileFinder = new InputFileFinder(null, null, null, Charset.defaultCharset());
+    fileFinder = new InputFileFinder(Collections.emptyList(), Collections.emptyList(), null, Charset.defaultCharset());
     main = new Main(opts, sonarLintFactory, reportFactory, fileFinder);
   }
 

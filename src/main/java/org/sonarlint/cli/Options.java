@@ -20,6 +20,8 @@
 package org.sonarlint.cli;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import org.sonarlint.cli.util.Logger;
 
@@ -32,8 +34,8 @@ public class Options {
   private boolean showStack = false;
   private boolean interactive = false;
   private String htmlReport = null;
-  private String src = null;
-  private String tests = "";
+  private List<String> src = new ArrayList<>();
+  private List<String> tests = new ArrayList<>();
   private String exclusions = "";
   private String charset = null;
   private boolean update = false;
@@ -82,11 +84,11 @@ public class Options {
 
         } else if ("--src".equals(arg)) {
           checkAdditionalArg(i, args.length, arg);
-          options.src = args[i];
+          options.src.add(args[i]);
 
         } else if ("--tests".equals(arg)) {
           checkAdditionalArg(i, args.length, arg);
-          options.tests = args[i];
+          options.tests.add(args[i]);
 
         } else if ("--exclude".equals(arg)) {
           checkAdditionalArg(i, args.length, arg);
@@ -131,11 +133,11 @@ public class Options {
     return htmlReport;
   }
 
-  public String src() {
+  public List<String> src() {
     return src;
   }
 
-  public String tests() {
+  public List<String> tests() {
     return tests;
   }
 
