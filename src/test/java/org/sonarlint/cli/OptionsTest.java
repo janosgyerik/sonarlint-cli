@@ -50,8 +50,17 @@ public class OptionsTest {
   public void testGlobs() throws ParseException {
     Options opt = Options.parse(args("--src", "source", "--tests", "tests", "--exclude", "exclude"));
 
-    assertThat(opt.src()).isEqualTo("source");
-    assertThat(opt.tests()).isEqualTo("tests");
+    assertThat(opt.src()).containsExactly("source");
+    assertThat(opt.tests()).containsExactly("tests");
+    assertThat(opt.exclusions()).isEqualTo("exclude");
+  }
+
+  @Test
+  public void testMultipleGlobs() throws ParseException {
+    Options opt = Options.parse(args("--src", "source", "--src", "source2", "--tests", "tests", "--tests", "tests2", "--exclude", "exclude"));
+
+    assertThat(opt.src()).containsExactly("source", "source2");
+    assertThat(opt.tests()).containsExactly("tests", "tests2");
     assertThat(opt.exclusions()).isEqualTo("exclude");
   }
 

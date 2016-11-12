@@ -33,44 +33,41 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+
 import org.sonarlint.cli.util.Logger;
 import org.sonarsource.sonarlint.core.client.api.common.analysis.ClientInputFile;
 
 public class InputFileFinder {
   private static final String GLOB_PREFIX = "glob:";
   private static final Logger LOGGER = Logger.get();
-  private final PathMatcher srcMatcher;
-  private final PathMatcher testsMatcher;
+  private final List<PathMatcher> srcMatchers = new ArrayList<>();
+  private final List<PathMatcher> testsMatchers = new ArrayList<>();
   private final PathMatcher excludeMatcher;
   private final Charset charset;
 
-  private static PathMatcher acceptAll = p -> true;
   private static PathMatcher refuseAll = p -> false;
 
-  public InputFileFinder(@Nullable String srcGlobPattern, @Nullable String testsGlobPattern, @Nullable String excludeGlobPattern, Charset charset) {
+  public InputFileFinder(List<String> srcGlobPatterns, List<String> testsGlobPatterns, @Nullable String excludeGlobPattern, Charset charset) {
     this.charset = charset;
     FileSystem fs = FileSystems.getDefault();
-    try {
-      if (srcGlobPattern != null) {
-        srcMatcher = fs.getPathMatcher(GLOB_PREFIX + srcGlobPattern);
-      } else {
-        srcMatcher = acceptAll;
-      }
-    } catch (Exception e) {
-      LOGGER.error("Error creating matcher for sources with pattern: " + srcGlobPattern);
-      throw e;
-    }
 
-    try {
-      if (testsGlobPattern != null) {
-        testsMatcher = fs.getPathMatcher(GLOB_PREFIX + testsGlobPattern);
-      } else {
-        testsMatcher = refuseAll;
+    srcGlobPatterns.forEach(p -> {
+      try {
+        srcMatchers.add(fs.getPathMatcher(GLOB_PREFIX + p));
+      } catch (Exception e) {
+        LOGGER.error("Error creating matcher for sources with pattern: " + p);
+        throw e;
       }
-    } catch (Exception e) {
-      LOGGER.error("Error creating matcher for tests with pattern: " + testsGlobPattern);
-      throw e;
-    }
+    });
+
+    testsGlobPatterns.forEach(p -> {
+      try {
+        testsMatchers.add(fs.getPathMatcher(GLOB_PREFIX + p));
+      } catch (Exception e) {
+        LOGGER.error("Error creating matcher for tests with pattern: " + p);
+        throw e;
+      }
+    });
 
     try {
       if (excludeGlobPattern != null) {
@@ -103,10 +100,10 @@ public class InputFileFinder {
     public FileVisitResult visitFile(final Path file, BasicFileAttributes attrs) throws IOException {
       Path absoluteFilePath = file;
       Path relativeFilePath = baseDir.relativize(absoluteFilePath);
-      boolean isSrc = srcMatcher.matches(absoluteFilePath) || srcMatcher.matches(relativeFilePath);
+      boolean isSrc = srcMatchers.stream().anyMatch(m -> m.matches(absoluteFilePath) || m.matches(relativeFilePath));
       boolean isExcluded = excludeMatcher.matches(absoluteFilePath) || excludeMatcher.matches(relativeFilePath);
       if (isSrc && !isExcluded) {
-        boolean isTest = testsMatcher.matches(absoluteFilePath) || testsMatcher.matches(relativeFilePath);
+        boolean isTest = testsMatchers.stream().anyMatch(m -> m.matches(absoluteFilePath) || m.matches(relativeFilePath));
         files.add(new DefaultClientInputFile(absoluteFilePath, isTest, charset));
       }
 
